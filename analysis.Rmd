@@ -1,0 +1,300 @@
+---
+title: "Analysis"
+author: "Junsang Yoo"
+date: '2020 7 28 '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# library 불러오기
+library(tidyverse)
+library(lubridate)
+
+# 데이터 불러오기
+visit_count <- read.csv("data/raw/visit_count.csv")
+pass_type <- read.csv("data/raw/pass_type.csv")
+```
+
+```{r view data}
+head(visit_count)
+head(pass_type)
+```
+
+```{r data preprocessing}
+# structure 확인 & 변환
+str(visit_count)
+visit_count <- visit_count %>%
+        mutate(time = ymd_hms(time))
+str(pass_type) 
+pass_type <- pass_type %>%
+        mutate(time = ymd_hms(time))
+
+# 결측 확인 --> none
+sapply(visit_count, function(x) sum(is.na(x)))
+sapply(pass_type, function(x) sum(is.na(x)))
+
+# pass_type 2개 이상 데이터 들어간 이상한 것 있는지 보기
+pass_type %>%
+        group_by(patient_No) %>%
+        tally() %>%
+        filter(n != 2)
+
+# 27, 44, 45, 99가 데이터 오류 존재 --> 제거
+pass_type2 <- pass_type %>%
+        filter(!patient_No %in% c(27, 44, 45, 99)) %>% # --> 오류데이터 제거
+        pivot_wider(names_from = pass_type, values_from = time) %>%                      # 데이터 변환
+        pivot_longer(cols = c("q_only", "qr", "qr_c_aid", "kiosk", "kiosk_c_aid")) %>%   # 데이터 변환 
+        na.omit() %>%
+        rename(visit_time = visit, # 변수 명 정리 
+               pass_type  = name, 
+               pass_time  = value) %>%
+        mutate(visit_to_pass_time = difftime(pass_time, visit_time, units = "secs"))     # 통과시간 - 도착시간
+```
+
+```{r EDA 1}
+ggplot(data = visit_count, aes(x = time)) + 
+        geom_bar()
+```
+
+```{r EDA 2}
+t_visit_count <- visit_count %>%
+        mutate(floor_min = floor_date(time, '1 mins'))
+
+ggplot(data = t_visit_count, aes(x = floor_min)) + 
+        geom_bar()
+
+```
+```{r}
+t_visit_count2 <- t_visit_count %>%
+        group_by(floor_min) %>%
+        tally()
+ggplot(data = t_visit_count2, aes(x = n)) +
+        geom_density() + 
+        xlim(c(0, 30))
+```
+
+# 환자 내원
+## 환자는 포아송 분포에 따라 내원함
+## 시뮬레이션 데이터를 비교해 가며 lambda 값 찾아 봄.
+```{r}
+set.seed(1004*777)
+t_df <- data.frame(min = rpois(n = 1000, lambda = 14))
+ggplot(t_df, aes(x = min)) + 
+        geom_density() + 
+        xlim(c(0,30))
+```
+
+
+```{r EDA 3}
+t_visit_count <- visit_count %>%
+        mutate(floor_min = floor_date(time, '5 mins'))
+
+ggplot(data = t_visit_count, aes(x = floor_min)) + 
+        geom_bar()
+
+```
+
+```{r EDA 4}
+t_visit_count <- visit_count %>%
+        mutate(floor_min = floor_date(time, '10 mins'))
+
+ggplot(data = t_visit_count, aes(x = floor_min)) + 
+        geom_bar()
+
+```
+
+```{r EDA 2}
+head(pass_type2)
+
+t_pass_type2 <- pass_type2 %>%
+        mutate(floor_min = floor_date(visit_time, '1 mins')) %>%
+        group_by(floor_min) %>%
+        summarise(mean_pass_sec = mean(visit_to_pass_time))
+
+ggplot(t_pass_type2, aes(x = floor_min, y = mean_pass_sec)) + 
+        geom_bar(stat = "identity")
+
+
+```
+
+```{r EDA 2}
+t_pass_type2 <- pass_type2 %>%
+        mutate(floor_min = floor_date(visit_time, '5 mins')) %>%
+        group_by(floor_min) %>%
+        summarise(mean_pass_sec = mean(visit_to_pass_time))
+
+ggplot(t_pass_type2, aes(x = floor_min, y = mean_pass_sec)) + 
+        geom_bar(stat = "identity")
+
+
+```
+
+```{r EDA 2}
+t_pass_type2 <- pass_type2 %>%
+        mutate(floor_min = floor_date(visit_time, '10 mins')) %>%
+        group_by(floor_min) %>%
+        summarise(mean_pass_sec = mean(visit_to_pass_time))
+
+ggplot(t_pass_type2, aes(x = floor_min, y = mean_pass_sec)) + 
+        geom_bar(stat = "identity")
+
+
+```
+
+```{r EDA 2}
+t_pass_type2 <- pass_type2 %>%
+        mutate(floor_min = floor_date(visit_time, '1 mins') %>% factor())
+
+ggplot(t_pass_type2, aes(x = floor_min, y = as.numeric(visit_to_pass_time))) + 
+        geom_boxplot()
+```
+
+```{r EDA 2}
+t_pass_type2 <- pass_type2 %>%
+        mutate(floor_min = floor_date(visit_time, '5 mins') %>% factor())
+
+ggplot(t_pass_type2, aes(x = floor_min, y = as.numeric(visit_to_pass_time))) + 
+        geom_boxplot()
+```
+
+```{r EDA 2}
+t_pass_type2 <- pass_type2 %>%
+        mutate(floor_min = floor_date(visit_time, '10 mins') %>% factor())
+
+ggplot(t_pass_type2, aes(x = floor_min, y = as.numeric(visit_to_pass_time))) + 
+        geom_boxplot()
+```
+
+```{r EDA 2}
+t_pass_type2 <- pass_type2 %>%
+        mutate(floor_min = floor_date(visit_time, '15 mins') %>% factor())
+
+ggplot(t_pass_type2, aes(x = floor_min, y = as.numeric(visit_to_pass_time))) + 
+        geom_boxplot()
+```
+
+```{r}
+t_pass_type2 <- pass_type2 %>%
+        mutate(pass_type = case_when(pass_type %in% c("kiosk", "kiosk_c_aid") ~ "kiosk", 
+                                     pass_type %in% c("qr", "qr_c_aid") ~ "qr", 
+                                     pass_type %in% c("q_only") ~ "q_only"))
+
+ggplot(t_pass_type2, aes(x = pass_type, y = as.numeric(visit_to_pass_time))) + 
+        geom_boxplot()
+```
+
+
+```{r}
+ggplot(t_pass_type2, aes(x = as.numeric(visit_to_pass_time))) + 
+        geom_density() + 
+        facet_grid(~pass_type)
+```
+```{r}
+ggplot(t_pass_type2, aes(x = as.numeric(visit_to_pass_time), col = pass_type)) + 
+        geom_density()
+```
+
+
+```{r}
+ggplot(pass_type2, aes(x = pass_type, y = as.numeric(visit_to_pass_time))) + 
+        geom_boxplot()
+```
+
+
+```{r}
+ggplot(pass_type2, aes(x = as.numeric(visit_to_pass_time))) + 
+        geom_density() + 
+        facet_grid(~pass_type)
+```
+
+```{r}
+ggplot(pass_type2, aes(x = as.numeric(visit_to_pass_time), col = pass_type)) + 
+        geom_density()
+```
+
+
+```{r}
+ggplot(t_pass_type2, aes(x = as.numeric(visit_to_pass_time))) + 
+        geom_density()
+```
+
+
+
+```{r}
+
+```
+
+
+```{r}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+

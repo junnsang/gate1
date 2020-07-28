@@ -41,9 +41,11 @@ shinyApp(
                 # 빈 데이터
                 df <- reactiveValues(m = data.frame())
                 vals <- reactiveValues(PatientNo = 1)
+                
+                # 현재 환자 적용위함
                 observeEvent(input$PatientNo_plus, {vals$PatientNo <- vals$PatientNo - 1})
                 observeEvent(input$PatientNo_minus, {vals$PatientNo <- vals$PatientNo + 1})
-                # pt_no <- vals$PatientNo
+                
                 # 키 입력 시 데이터 변환
                 observeEvent(input$delete, {df$m <- df$m %>% slice(1:nrow(df$m)-1)})
                 observeEvent(input$visit, {df$m <- bind_rows(df$m, 
@@ -54,10 +56,12 @@ shinyApp(
                                                                c(patient_No = vals$PatientNo, 
                                                                  pass_type = as.character(input$pass_type),
                                                                  time = as.character(now())))})
-                output$table <- renderTable(tail(df$m, 5))
-                thedata <- reactive(df$m)
                 
-                # 데이터 저장 위함
+                # UI에 보일 데이터 
+                output$table <- renderTable(tail(df$m, 5))
+                
+                # 데이터 저장
+                thedata <- reactive(df$m)
                 output$downloadData <- downloadHandler(
                         filename = function(){"PatientNo.csv"},
                         content = function(filename) {

@@ -5,6 +5,13 @@ date: '2020 7 28 '
 output: html_document
 ---
 
+
+# 배경
+
+의료분야는 노동집약적인 
+
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -16,6 +23,9 @@ library(lubridate)
 visit_count <- read.csv("data/raw/visit_count.csv")
 pass_type <- read.csv("data/raw/pass_type.csv")
 ```
+
+
+
 
 ```{r view data}
 head(visit_count)
@@ -105,7 +115,7 @@ ggplot(data = t_visit_count, aes(x = floor_min)) +
 
 ```
 
-```{r EDA 2}
+```{r EDA 5}
 head(pass_type2)
 
 t_pass_type2 <- pass_type2 %>%
@@ -119,7 +129,7 @@ ggplot(t_pass_type2, aes(x = floor_min, y = mean_pass_sec)) +
 
 ```
 
-```{r EDA 2}
+```{r EDA 6}
 t_pass_type2 <- pass_type2 %>%
         mutate(floor_min = floor_date(visit_time, '5 mins')) %>%
         group_by(floor_min) %>%
@@ -131,7 +141,7 @@ ggplot(t_pass_type2, aes(x = floor_min, y = mean_pass_sec)) +
 
 ```
 
-```{r EDA 2}
+```{r EDA 7}
 t_pass_type2 <- pass_type2 %>%
         mutate(floor_min = floor_date(visit_time, '10 mins')) %>%
         group_by(floor_min) %>%
@@ -143,7 +153,7 @@ ggplot(t_pass_type2, aes(x = floor_min, y = mean_pass_sec)) +
 
 ```
 
-```{r EDA 2}
+```{r EDA 8}
 t_pass_type2 <- pass_type2 %>%
         mutate(floor_min = floor_date(visit_time, '1 mins') %>% factor())
 
@@ -151,7 +161,7 @@ ggplot(t_pass_type2, aes(x = floor_min, y = as.numeric(visit_to_pass_time))) +
         geom_boxplot()
 ```
 
-```{r EDA 2}
+```{r EDA 9}
 t_pass_type2 <- pass_type2 %>%
         mutate(floor_min = floor_date(visit_time, '5 mins') %>% factor())
 
@@ -159,7 +169,7 @@ ggplot(t_pass_type2, aes(x = floor_min, y = as.numeric(visit_to_pass_time))) +
         geom_boxplot()
 ```
 
-```{r EDA 2}
+```{r EDA 10}
 t_pass_type2 <- pass_type2 %>%
         mutate(floor_min = floor_date(visit_time, '10 mins') %>% factor())
 
@@ -167,7 +177,7 @@ ggplot(t_pass_type2, aes(x = floor_min, y = as.numeric(visit_to_pass_time))) +
         geom_boxplot()
 ```
 
-```{r EDA 2}
+```{r EDA 11}
 t_pass_type2 <- pass_type2 %>%
         mutate(floor_min = floor_date(visit_time, '15 mins') %>% factor())
 
@@ -175,7 +185,7 @@ ggplot(t_pass_type2, aes(x = floor_min, y = as.numeric(visit_to_pass_time))) +
         geom_boxplot()
 ```
 
-```{r}
+```{r EDA 12}
 t_pass_type2 <- pass_type2 %>%
         mutate(pass_type = case_when(pass_type %in% c("kiosk", "kiosk_c_aid") ~ "kiosk", 
                                      pass_type %in% c("qr", "qr_c_aid") ~ "qr", 
@@ -186,115 +196,42 @@ ggplot(t_pass_type2, aes(x = pass_type, y = as.numeric(visit_to_pass_time))) +
 ```
 
 
-```{r}
+```{r EDA 13}
 ggplot(t_pass_type2, aes(x = as.numeric(visit_to_pass_time))) + 
         geom_density() + 
         facet_grid(~pass_type)
 ```
-```{r}
+```{r EDA 14}
 ggplot(t_pass_type2, aes(x = as.numeric(visit_to_pass_time), col = pass_type)) + 
         geom_density()
 ```
 
 
-```{r}
+```{r EDA 15}
 ggplot(pass_type2, aes(x = pass_type, y = as.numeric(visit_to_pass_time))) + 
         geom_boxplot()
 ```
 
 
-```{r}
+```{r EDA 16}
 ggplot(pass_type2, aes(x = as.numeric(visit_to_pass_time))) + 
         geom_density() + 
         facet_grid(~pass_type)
 ```
 
-```{r}
+```{r EDA 17}
 ggplot(pass_type2, aes(x = as.numeric(visit_to_pass_time), col = pass_type)) + 
         geom_density()
 ```
 
 
-```{r}
+```{r EDA 18}
 ggplot(t_pass_type2, aes(x = as.numeric(visit_to_pass_time))) + 
         geom_density()
 ```
 
 
 
-```{r}
+```{r EDA 19}
 
 ```
-
-
-```{r}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```
-
